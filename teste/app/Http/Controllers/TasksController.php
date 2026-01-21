@@ -27,18 +27,65 @@ class TasksController extends Controller
     }
     public function store(Request $request)
     {
-        $task = Tasks::create([
-            'title' => $request->title,
-            'description'=> $request->description,
-            'completed'=> $request->completed ?? true,
+        $data = $request->validate([
+            'title'       => 'required|string|max:255',
+            'description' => 'nullable|string',
+            'completed'   => 'boolean'
         ]);
-        return response()->json($task, 201);
+
+        try {
+            $task = Tasks::create($data);
+
+            return response()->json([
+                'message' => 'Task criada com sucesso',
+                'data' => $task
+            ], 201);
+
+        } catch (\Throwable $e) {
+
+            Log::error('Erro ao criar task', [
+                'error' => $e->getMessage()
+            ]);
+
+            return response()->json([
+                'message' => 'Erro ao criar task'
+            ], 500);
+        }     
     }
 
     public function update(Request $request, $id)
     {
-        return response()->json([
-            'message' => "Faz Cruz {$id} atualizado"
+        $data = $request->validate([
+            'title'       => 'required|string|max:255',
+            'description' => 'nullable|string',
+            'completed'   => 'boolean'
         ]);
+
+        try {
+            $task = Tasks::findOrFail($id);
+
+            $task->update($data);
+
+            return response()->json([
+                'message' => 'Task atualizada com sucesso',
+                'data' => $task
+            ], 200);
+
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+
+            return response()->json([
+                'message' => 'Task não encontrada'
+            ], 404);
+
+        } catch (\Throwable $e) {
+
+            Log::error('Erro ao atualizar task', [
+                'error' => $e->getMessage()
+            ]);
+
+            return response()->json([
+                'message' => 'Erro ao atualizar task'
+            ], 500);
+        }
     }
 }
