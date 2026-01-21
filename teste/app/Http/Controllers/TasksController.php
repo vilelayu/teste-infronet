@@ -52,7 +52,6 @@ class TasksController extends Controller
             ], 500);
         }     
     }
-
     public function update(Request $request, $id)
     {
         $data = $request->validate([
